@@ -212,27 +212,6 @@ class OnPremAgentsStream(WorkatoStream):
     ).to_dict()
 
 
-# class DeploymentsStream(WorkatoStream):
-#     """Stream for extracting Deployments."""
-#
-#     name = "deployments"
-#     path = "/api/deployments"
-#     primary_keys = ["id"]
-#     replication_key = None
-#     records_jsonpath = "$.items[*]"
-#     schema = th.PropertiesList(
-#         th.Property("id", th.IntegerType),
-#         th.Property("created_at", th.DateTimeType),
-#         th.Property("updated_at", th.DateTimeType),
-#         th.Property("description", th.StringType),
-#         th.Property("project_build_id", th.IntegerType),
-#         th.Property("environment_type", th.StringType),
-#         th.Property("project_id", th.StringType),
-#         th.Property("state", th.StringType),
-#         th.Property("performed_by_name", th.StringType),
-#     ).to_dict()
-
-
 class RolesStream(WorkatoStream):
     """Stream for extracting Custom Roles."""
 
@@ -251,8 +230,6 @@ class RolesStream(WorkatoStream):
 
 
 # Streams For Managed Users / Customer Account
-# The endpoints in this section are Embedded Vendor APIs and require
-# the oem_vendor privilege.
 class CustomerAccountsStream(WorkatoStream):
     """Stream for extracting Managed Users or Customer Accounts."""
 
