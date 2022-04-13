@@ -16,9 +16,6 @@ plugins:
       kind: password
     - name: user_email
       kind: password
-    select:
-#    - 'customer_recipes.*'
-    - 'customer_jobs.*'
   loaders:
   - name: target-jsonl
     variant: andyh1203
