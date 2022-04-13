@@ -14,6 +14,7 @@ class ApiCollectionsStream(WorkatoStream):
     path = "/api/api_collections"
     primary_keys = ["id"]
     replication_key = None
+    current_page = 1
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("name", th.StringType),
@@ -70,6 +71,7 @@ class FoldersStream(WorkatoStream):
     path = "/api/folders"
     primary_keys = ["id"]
     replication_key = None
+    current_page = 1
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("name", th.StringType),
@@ -87,6 +89,7 @@ class RecipesStream(WorkatoStream):
     primary_keys = ["id"]
     replication_key = None
     records_jsonpath = "$.items[*]"
+    current_page = 1
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("user_id", th.IntegerType),
@@ -238,6 +241,7 @@ class CustomerAccountsStream(WorkatoStream):
     primary_keys = ["id"]
     replication_key = None
     records_jsonpath = "$.result[*]"
+    current_page = 1
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("external_id", th.StringType),
@@ -268,15 +272,26 @@ class CustomerAccountsStream(WorkatoStream):
         return {"customer_account_id": record["id"]}
 
 
-class CustomerMembersStream(WorkatoStream):
+class CustomerChildStreams(WorkatoStream):
+    """Parent Stream for all children to the CustomerAccountsStream for DRY code."""
+
+    parent_stream_type = CustomerAccountsStream
+    primary_keys = ["customer_account_id", "id"]
+    replication_key = None
+
+    def post_process(  # type: ignore[override]
+        self, row: dict, context: dict
+    ) -> Optional[dict]:
+        """As needed, append or transform raw data to match expected structure."""
+        row["customer_account_id"] = context["customer_account_id"]
+        return row
+
+
+class CustomerMembersStream(CustomerChildStreams):
     """Stream for extracting customers' connections."""
 
     name = "customer_members"
     path = "/api/managed_users/{customer_account_id}/members"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
-    records_jsonpath = "$[*]"
-    parent_stream_type = CustomerAccountsStream
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -288,23 +303,13 @@ class CustomerMembersStream(WorkatoStream):
         th.Property("time_zone", th.StringType),
     ).to_dict()
 
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row
 
-
-class CustomerConnectionsStream(WorkatoStream):
+class CustomerConnectionsStream(CustomerChildStreams):
     """Stream for extracting customers' connections."""
 
     name = "customer_connections"
     path = "/api/managed_users/{customer_account_id}/connections"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
     records_jsonpath = "$.result[*]"
-    parent_stream_type = CustomerAccountsStream
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -320,23 +325,14 @@ class CustomerConnectionsStream(WorkatoStream):
         th.Property("parent_id", th.IntegerType),
     ).to_dict()
 
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row
 
-
-class CustomerFoldersStream(WorkatoStream):
+class CustomerFoldersStream(CustomerChildStreams):
     """Stream for extracting customers' folders."""
 
     name = "customer_folders"
     path = "/api/managed_users/{customer_account_id}/folders"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
     records_jsonpath = "$.result[*]"
-    parent_stream_type = CustomerAccountsStream
+    current_page = 1
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -346,23 +342,14 @@ class CustomerFoldersStream(WorkatoStream):
         th.Property("updated_at", th.DateTimeType),
     ).to_dict()
 
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row
 
-
-class CustomerRecipesStream(WorkatoStream):
+class CustomerRecipesStream(CustomerChildStreams):
     """Stream for extracting customers' recipes."""
 
     name = "customer_recipes"
     path = "/api/managed_users/{customer_account_id}/recipes"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
     records_jsonpath = "$.result[*]"
-    parent_stream_type = CustomerAccountsStream
+    current_page = 1
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -402,13 +389,6 @@ class CustomerRecipesStream(WorkatoStream):
         ),
     ).to_dict()
 
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row
-
     def get_child_context(self, record: dict, context: Optional[dict]) -> dict:
         """Return a context dictionary for child streams."""
         return {
@@ -418,7 +398,7 @@ class CustomerRecipesStream(WorkatoStream):
 
 
 # not currently possible to hit this endpoint for managed users' recipes
-# class CustomerJobsStream(WorkatoStream):
+# class CustomerJobsStream(CustomerChildStreams):
 #     """Stream for extracting Jobs."""
 #
 #     name = "customer_jobs"
@@ -468,15 +448,12 @@ class CustomerRecipesStream(WorkatoStream):
 #         return row
 
 
-class CustomerApiCollectionsStream(WorkatoStream):
+class CustomerApiCollectionsStream(CustomerChildStreams):
     """Stream for extracting customers' folders."""
 
     name = "customer_api_collections"
     path = "/api/managed_users/{customer_account_id}/api_collections"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
     records_jsonpath = "$.result[*]"
-    parent_stream_type = CustomerAccountsStream
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -488,23 +465,13 @@ class CustomerApiCollectionsStream(WorkatoStream):
         th.Property("api_spec_url", th.StringType),
     ).to_dict()
 
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row
 
-
-class CustomerApiEndpointsStream(WorkatoStream):
+class CustomerApiEndpointsStream(CustomerChildStreams):
     """Stream for extracting customers' folders."""
 
     name = "customer_api_endpoints"
     path = "/api/managed_users/{customer_account_id}/api_endpoints"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
     records_jsonpath = "$.result[*]"
-    parent_stream_type = CustomerAccountsStream
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -522,23 +489,13 @@ class CustomerApiEndpointsStream(WorkatoStream):
         th.Property("updated_at", th.DateTimeType),
     ).to_dict()
 
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row
 
-
-class CustomerApiClientsStream(WorkatoStream):
+class CustomerApiClientsStream(CustomerChildStreams):
     """Stream for extracting customers' folders."""
 
     name = "customer_api_clients"
     path = "/api/managed_users/{customer_account_id}/api_clients"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
     records_jsonpath = "$.result[*]"
-    parent_stream_type = CustomerAccountsStream
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -546,13 +503,6 @@ class CustomerApiClientsStream(WorkatoStream):
         th.Property("created_at", th.DateTimeType),
         th.Property("updated_at", th.DateTimeType),
     ).to_dict()
-
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row
 
     def get_child_context(self, record: dict, context: Optional[dict]) -> dict:
         """Return a context dictionary for child streams."""
@@ -569,7 +519,6 @@ class CustomerApiAccessProfilesStream(WorkatoStream):
     path = "/api/managed_users/{customer_account_id}/api_access_profiles"
     primary_keys = ["customer_account_id", "api_client_id", "id"]
     replication_key = None
-    records_jsonpath = "$[*]"
     parent_stream_type = CustomerApiClientsStream
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
@@ -593,15 +542,11 @@ class CustomerApiAccessProfilesStream(WorkatoStream):
         return row
 
 
-class CustomerRolesStream(WorkatoStream):
+class CustomerRolesStream(CustomerChildStreams):
     """Stream for extracting customers' folders."""
 
     name = "customer_roles"
     path = "/api/managed_users/{customer_account_id}/roles"
-    primary_keys = ["customer_account_id", "id"]
-    replication_key = None
-    records_jsonpath = "$[*]"
-    parent_stream_type = CustomerAccountsStream
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
@@ -611,10 +556,3 @@ class CustomerRolesStream(WorkatoStream):
         th.Property("created_at", th.DateTimeType),
         th.Property("updated_at", th.DateTimeType),
     ).to_dict()
-
-    def post_process(  # type: ignore[override]
-        self, row: dict, context: dict
-    ) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        row["customer_account_id"] = context["customer_account_id"]
-        return row

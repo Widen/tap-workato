@@ -16,7 +16,7 @@ class WorkatoStream(RESTStream):
     url_base = "https://www.workato.com"
 
     records_jsonpath = "$[*]"
-    next_page_token_jsonpath = "$.next_page"  # Or override `get_next_page_token`.
+    current_page = None
 
     @property
     def http_headers(self) -> dict:
@@ -30,14 +30,11 @@ class WorkatoStream(RESTStream):
         self, response: requests.Response, previous_token: Optional[Any]
     ) -> Optional[Any]:
         """Return a token for identifying next page or None if no more pages."""
-        if self.next_page_token_jsonpath:
-            all_matches = extract_jsonpath(
-                self.next_page_token_jsonpath, response.json()
-            )
-            first_match = next(iter(all_matches), None)
-            next_page_token = first_match
-        else:
-            next_page_token = response.headers.get("X-Next-Page", None)
+        next_page_token: Optional[int] = None
+        if self.current_page:
+            all_matches = extract_jsonpath(self.records_jsonpath, response.json())
+            records_cnt = sum([1 for m in all_matches])
+            next_page_token = self.current_page + 1 if records_cnt == 100 else None
 
         return next_page_token
 
@@ -48,6 +45,7 @@ class WorkatoStream(RESTStream):
         params: dict = {"per_page": 100}
         if next_page_token:
             params["page"] = next_page_token
+            self.current_page = next_page_token
         if self.replication_key:
             params["order"] = "default"
         return params
