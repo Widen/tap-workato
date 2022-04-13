@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry env use python
-          poetry install
+          poetry install --no-index
       - name: Build package
         run: poetry build
       - name: Publish package
