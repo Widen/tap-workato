@@ -1,0 +1,25 @@
+version: 1
+send_anonymous_usage_stats: false
+project_id: tap-workato
+elt.buffer_size: 20971520
+plugins:
+  extractors:
+  - name: tap-workato
+    namespace: tap_workato
+    pip_url: -e .
+    capabilities:
+    - state
+    - catalog
+    - discover
+    settings:
+    - name: user_token
+      kind: password
+    - name: user_email
+      kind: password
+    select:
+#    - 'customer_recipes.*'
+    - 'customer_jobs.*'
+  loaders:
+  - name: target-jsonl
+    variant: andyh1203
+    pip_url: target-jsonl
