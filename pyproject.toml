@@ -12,6 +12,7 @@ keywords = [
 license = "Apache 2.0"
 homepage = "https://github.com/Widen/tap-workato"
 repository = "https://github.com/Widen/tap-workato"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "<3.11,>=3.7.1"
