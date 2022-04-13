@@ -7,7 +7,7 @@ keywords = [
     "ELT",
     "Workato",
     "Singer",
-    "tap"
+    "tap",
 ]
 license = "Apache 2.0"
 homepage = "https://github.com/Widen/tap-workato"
