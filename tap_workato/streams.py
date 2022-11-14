@@ -101,7 +101,7 @@ class RecipesStream(WorkatoStream):
         th.Property("action_applications", th.ArrayType(th.StringType)),
         th.Property("applications", th.ArrayType(th.StringType)),
         th.Property("description", th.StringType),
-        th.Property("parameters_schema", th.ArrayType(th.StringType)),
+        th.Property("parameters_schema", th.ArrayType(th.ObjectType())),
         th.Property("parameters", th.ObjectType()),
         th.Property("folder_id", th.IntegerType),
         th.Property("running", th.BooleanType),
@@ -150,7 +150,7 @@ class JobsStream(WorkatoStream):
             "items",
             th.ArrayType(
                 th.ObjectType(
-                    th.Property("id", th.IntegerType),
+                    th.Property("id", th.StringType),
                     th.Property("flow_run_id", th.IntegerType),
                     th.Property("completed_at", th.DateTimeType),
                     th.Property("started_at", th.DateTimeType),
@@ -344,7 +344,10 @@ class CustomerFoldersStream(CustomerChildStreams):
 
 
 class CustomerRecipesStream(CustomerChildStreams):
-    """Stream for extracting customers' recipes."""
+    """Stream for extracting customers' recipes.
+
+    Will need extra buffer space for this stream
+    """
 
     name = "customer_recipes"
     path = "/api/managed_users/{customer_account_id}/recipes"
@@ -362,7 +365,7 @@ class CustomerRecipesStream(CustomerChildStreams):
         th.Property("action_applications", th.ArrayType(th.StringType)),
         th.Property("applications", th.ArrayType(th.StringType)),
         th.Property("description", th.StringType),
-        th.Property("parameters_schema", th.ArrayType(th.StringType)),
+        th.Property("parameters_schema", th.ArrayType(th.ObjectType())),
         th.Property("parameters", th.ObjectType()),
         th.Property("folder_id", th.IntegerType),
         th.Property("running", th.BooleanType),
@@ -547,6 +550,7 @@ class CustomerRolesStream(CustomerChildStreams):
 
     name = "customer_roles"
     path = "/api/managed_users/{customer_account_id}/roles"
+    records_jsonpath = "$.result[*]"
     schema = th.PropertiesList(
         th.Property("customer_account_id", th.IntegerType),
         th.Property("id", th.IntegerType),
