@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tap-workato"
-version = "0.0.3"
+version = "0.1.0"
 description = "`tap-workato` is a Singer tap for Workato, built with the Meltano SDK for Singer Taps."
 authors = ["Josh Lloyd"]
 keywords = [

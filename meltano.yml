@@ -16,7 +16,13 @@ plugins:
       kind: password
     - name: user_email
       kind: password
+#    select:
+#      - 'customer_recipes.*'
+#      - '!api_clients.*'
   loaders:
   - name: target-jsonl
     variant: andyh1203
     pip_url: target-jsonl
+environments:
+  - name: default
+default_environment: default
