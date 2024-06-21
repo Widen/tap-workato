@@ -16,8 +16,8 @@ plugins:
       kind: password
     - name: user_email
       kind: password
-#    select:
-#      - 'customer_recipes.*'
+    select:
+      - 'customer_recipes.*'
 #      - '!api_clients.*'
   loaders:
   - name: target-jsonl

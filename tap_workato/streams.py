@@ -1,5 +1,6 @@
 """Stream type classes for tap-workato."""
 import json
+import sys
 from typing import Optional
 
 from singer_sdk import typing as th
@@ -377,22 +378,23 @@ class CustomerRecipesStream(CustomerChildStreams):
         th.Property("version_no", th.IntegerType),
         th.Property("webhook_url", th.StringType),
         th.Property("stop_cause", th.StringType),
-        th.Property("code_number", th.IntegerType),
-        th.Property("code_provider", th.StringType),
-        th.Property("code_name", th.StringType),
-        th.Property("code_as", th.StringType),
-        th.Property("code_title", th.StringType),
-        th.Property("code_description", th.StringType),
-        th.Property("code_keyword", th.StringType),
-        th.Property("code_dynamicPickListSelection", th.StringType),
-        th.Property("code_toggleCfg", th.StringType),
-        th.Property("code_input", th.StringType),
-        th.Property("code_extended_output_schema", th.StringType),
-        th.Property("code_extended_input_schema", th.StringType),
-        th.Property("code_visible_config_fields", th.StringType),
-        th.Property("code_block", th.StringType),
-        th.Property("code_uuid", th.StringType),
-        th.Property("code_unfinished", th.BooleanType),
+        # th.Property("code", th.StringType),
+        # th.Property("code_number", th.IntegerType),
+        # th.Property("code_provider", th.StringType),
+        # th.Property("code_name", th.StringType),
+        # th.Property("code_as", th.StringType),
+        # th.Property("code_title", th.StringType),
+        # th.Property("code_description", th.StringType),
+        # th.Property("code_keyword", th.StringType),
+        # th.Property("code_dynamicPickListSelection", th.StringType),
+        # th.Property("code_toggleCfg", th.StringType),
+        # th.Property("code_input", th.StringType),
+        # th.Property("code_extended_output_schema", th.StringType),
+        # th.Property("code_extended_input_schema", th.StringType),
+        # th.Property("code_visible_config_fields", th.StringType),
+        # th.Property("code_block", th.StringType),
+        # th.Property("code_uuid", th.StringType),
+        # th.Property("code_unfinished", th.BooleanType),
         th.Property(
             "config",
             th.ArrayType(
@@ -406,21 +408,6 @@ class CustomerRecipesStream(CustomerChildStreams):
             ),
         ),
     ).to_dict()
-
-    def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
-        """As needed, append or transform raw data to match expected structure."""
-        new_row = row.copy()
-
-        # flatten the code object because it can get to large for target systems
-        code = json.loads(row["code"])
-        del new_row["code"]
-        for key, value in code.items():
-            if isinstance(value, dict) or isinstance(value, list):
-                new_row[f"code_{key}"] = json.dumps(value)
-            else:
-                new_row[f"code_{key}"] = value
-
-        return new_row
 
     # def get_child_context(self, record: dict, context: Optional[dict]) -> dict:
     #     """Return a context dictionary for child streams."""
