@@ -24,9 +24,7 @@ plugins:
     - catalog
     - discover
     settings:
-    - name: user_token
-      kind: password
-    - name: user_email
+    - name: api_token
       kind: password
 ```
 
@@ -76,9 +74,9 @@ Notes:
 
 ### Source Authentication and Authorization
 
-You will need authentication tokens set up in your Workato account. Namely a user 
-email and a user token. See the 
-instructions [here](https://docs.workato.com/oem/oem-api.html#authentication).
+You will need an API token set up in your Workato account. The token is passed as a 
+Bearer token in the Authorization header. See the 
+instructions [here](https://docs.workato.com/workato-api.html#authentication).
 
 ## Usage
 

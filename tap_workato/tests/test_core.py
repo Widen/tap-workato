@@ -5,8 +5,7 @@ from singer_sdk.testing import get_standard_tap_tests
 from tap_workato.tap import TapWorkato
 
 SAMPLE_CONFIG = {
-    "user_email": "test@workato.blah",
-    "user_token": "abc-123",
+    "api_token": "abc-123",
 }
 
 
