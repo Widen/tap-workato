@@ -22,8 +22,7 @@ class WorkatoStream(RESTStream):
     def http_headers(self) -> dict:
         """Return the http headers needed."""
         return {
-            "x-user-token": self.config.get("user_token"),
-            "x-user-email": self.config.get("user_email"),
+            "Authorization": f"Bearer {self.config.get('api_token')}",
         }
 
     def get_next_page_token(

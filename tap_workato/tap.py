@@ -57,22 +57,11 @@ class TapWorkato(Tap):
 
     config_jsonschema = th.PropertiesList(
         th.Property(
-            "user_token",
+            "api_token",
             th.StringType,
             required=True,
-            description="The token to authenticate against the Workato API service",
+            description="Bearer token for Workato API authentication",
         ),
-        th.Property(
-            "user_email",
-            th.StringType,
-            required=True,
-            description="The email address of the user paired with the token.",
-        ),
-        # th.Property(
-        #     "start_date", stopped_after in recipes?
-        #     th.DateTimeType,
-        #     description="The earliest record date to sync"
-        # ),
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:

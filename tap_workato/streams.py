@@ -1,6 +1,5 @@
 """Stream type classes for tap-workato."""
-import json
-import sys
+
 from typing import Optional
 
 from singer_sdk import typing as th
